@@ -20,10 +20,9 @@ import (
 	"net/url"
 
 	fuzz "github.com/AdaLogics/go-fuzz-headers"
-	//corev1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	//"k8s.io/apimachinery/pkg/api/apitesting/fuzzer"
 	//"k8s.io/apimachinery/pkg/runtime/serializer"
-	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/pkg/apis"
 )
 
@@ -72,46 +71,6 @@ func FuzzerFuncs() []interface{} {
 			u.RawQuery = url.QueryEscape(rawQuery)
 			return nil
 		},
-		func(source *sourcesv1.ApiServerSource, c fuzz.Continue) error {
-			_ = c.F.GenerateStruct(source) // fuzz the source
-			// Clear the random fuzzed condition
-			source.Status.SetConditions(nil)
-
-			// Fuzz the known conditions except their type value
-			source.Status.InitializeConditions()
-			err = FuzzConditions(&source.Status, c)
-			return err
-		},
-		func(source *sourcesv1.PingSource, c fuzz.Continue) error {
-			_ = c.F.GenerateStruct(source) // fuzz the source
-			// Clear the random fuzzed condition
-			source.Status.SetConditions(nil)
-
-			// Fuzz the known conditions except their type value
-			source.Status.InitializeConditions()
-			err = FuzzConditions(&source.Status, c)
-			return err
-		},
-		func(source *sourcesv1.ContainerSource, c fuzz.Continue) error {
-			_ = c.F.GenerateStruct(source) // fuzz the source
-			// Clear the random fuzzed condition
-			source.Status.SetConditions(nil)
-
-			// Fuzz the known conditions except their type value
-			source.Status.InitializeConditions()
-			err = FuzzConditions(&source.Status, c)
-			return err
-		},
-		func(source *sourcesv1.SinkBinding, c fuzz.Continue) error {
-			_ = c.F.GenerateStruct(source) // fuzz the source
-			// Clear the random fuzzed condition
-			source.Status.SetConditions(nil)
-
-			// Fuzz the known conditions except their type value
-			source.Status.InitializeConditions()
-			err = FuzzConditions(&source.Status, c)
-			return err
-		},
 	}
 }
 
@@ -159,4 +118,5 @@ func FuzzConditions(accessor apis.ConditionsAccessor, c fuzz.Continue) error {
 		conds[i] = cond
 	}
 	accessor.SetConditions(conds)
+	return nil
 }
