@@ -23,6 +23,7 @@ import (
 	//corev1 "k8s.io/api/core/v1"
 	//"k8s.io/apimachinery/pkg/api/apitesting/fuzzer"
 	//"k8s.io/apimachinery/pkg/runtime/serializer"
+	sourcesv1 "knative.dev/eventing/pkg/apis/sources/v1"
 	"knative.dev/pkg/apis"
 )
 
@@ -57,7 +58,7 @@ func FuzzerFuncs() []interface{} {
 			u.Host = hostString
 			u.User = url.UserPassword(
 				user, // username
-				p, // password
+				p,    // password
 			)
 			rawPath, err := c.F.GetString()
 			if err != nil {
@@ -69,7 +70,47 @@ func FuzzerFuncs() []interface{} {
 			}
 			u.RawPath = url.PathEscape(rawPath)
 			u.RawQuery = url.QueryEscape(rawQuery)
-		return nil
+			return nil
+		},
+		func(source *sourcesv1.ApiServerSource, c fuzz.Continue) error {
+			_ = c.F.GenerateStruct(source) // fuzz the source
+			// Clear the random fuzzed condition
+			source.Status.SetConditions(nil)
+
+			// Fuzz the known conditions except their type value
+			source.Status.InitializeConditions()
+			err = FuzzConditions(&source.Status, c)
+			return err
+		},
+		func(source *sourcesv1.PingSource, c fuzz.Continue) error {
+			_ = c.F.GenerateStruct(source) // fuzz the source
+			// Clear the random fuzzed condition
+			source.Status.SetConditions(nil)
+
+			// Fuzz the known conditions except their type value
+			source.Status.InitializeConditions()
+			err = FuzzConditions(&source.Status, c)
+			return err
+		},
+		func(source *sourcesv1.ContainerSource, c fuzz.Continue) error {
+			_ = c.F.GenerateStruct(source) // fuzz the source
+			// Clear the random fuzzed condition
+			source.Status.SetConditions(nil)
+
+			// Fuzz the known conditions except their type value
+			source.Status.InitializeConditions()
+			err = FuzzConditions(&source.Status, c)
+			return err
+		},
+		func(source *sourcesv1.SinkBinding, c fuzz.Continue) error {
+			_ = c.F.GenerateStruct(source) // fuzz the source
+			// Clear the random fuzzed condition
+			source.Status.SetConditions(nil)
+
+			// Fuzz the known conditions except their type value
+			source.Status.InitializeConditions()
+			err = FuzzConditions(&source.Status, c)
+			return err
 		},
 	}
 }
@@ -90,16 +131,32 @@ func FuzzerFuncs() []interface{} {
 //	  s.InitializeConditions()
 //	  fuzz.Conditions(&s.Status, c)
 //	}
-/*func FuzzConditions(accessor apis.ConditionsAccessor, c fuzz.Continue) {
+func FuzzConditions(accessor apis.ConditionsAccessor, c fuzz.Continue) error {
 	conds := accessor.GetConditions()
 	for i, cond := range conds {
 		// Leave condition.Type untouched
-		cond.Status = corev1.ConditionStatus(c.RandString())
-		cond.Severity = apis.ConditionSeverity(c.RandString())
-		cond.Message = c.RandString()
-		cond.Reason = c.RandString()
-		c.FuzzNoCustom(&cond.LastTransitionTime)
+		str1, err := c.F.GetString()
+		if err != nil {
+			return err
+		}
+		str2, err := c.F.GetString()
+		if err != nil {
+			return err
+		}
+		str3, err := c.F.GetString()
+		if err != nil {
+			return err
+		}
+		str4, err := c.F.GetString()
+		if err != nil {
+			return err
+		}
+		cond.Status = corev1.ConditionStatus(str1)
+		cond.Severity = apis.ConditionSeverity(str2)
+		cond.Message = str3
+		cond.Reason = str4
+		c.F.GenerateStruct(&cond.LastTransitionTime)
 		conds[i] = cond
 	}
 	accessor.SetConditions(conds)
-}*/
+}
