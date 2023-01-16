@@ -16,13 +16,13 @@
 package roundtrip
 
 import (
-	//"math/rand"
 	"net/url"
+
+	"time"
 
 	fuzz "github.com/AdaLogics/go-fuzz-headers"
 	corev1 "k8s.io/api/core/v1"
-	//"k8s.io/apimachinery/pkg/api/apitesting/fuzzer"
-	//"k8s.io/apimachinery/pkg/runtime/serializer"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"knative.dev/pkg/apis"
 )
 
@@ -94,19 +94,23 @@ func FuzzConditions(accessor apis.ConditionsAccessor, c fuzz.Continue) error {
 	conds := accessor.GetConditions()
 	for i, cond := range conds {
 		// Leave condition.Type untouched
-		str1, err := c.F.GetString()
+		str1, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 		if err != nil {
 			return err
 		}
-		str2, err := c.F.GetString()
+		str2, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 20)
 		if err != nil {
 			return err
 		}
-		str3, err := c.F.GetString()
+		str3, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 		if err != nil {
 			return err
 		}
-		str4, err := c.F.GetString()
+		str4, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+		if err != nil {
+			return err
+		}
+		timeInt, err := c.F.GetUint64()
 		if err != nil {
 			return err
 		}
@@ -114,7 +118,8 @@ func FuzzConditions(accessor apis.ConditionsAccessor, c fuzz.Continue) error {
 		cond.Severity = apis.ConditionSeverity(str2)
 		cond.Message = str3
 		cond.Reason = str4
-		c.F.GenerateStruct(&cond.LastTransitionTime)
+
+		cond.LastTransitionTime = apis.VolatileTime{Inner: metav1.NewTime(time.Unix(int64(timeInt%(1000*365*24*60*60)), 0))}
 		conds[i] = cond
 	}
 	accessor.SetConditions(conds)

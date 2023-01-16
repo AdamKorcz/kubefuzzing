@@ -18,15 +18,49 @@ package roundtrip
 import (
 	"sort"
 	"strconv"
+	"time"
 
 	fuzz "github.com/AdaLogics/go-fuzz-headers"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-
 )
 
 func V1FuzzerFuncs() []interface{} {
 	return []interface{}{
+		func(j *metav1.Time, c fuzz.Continue) error {
+			/*timeFormats := map[int]string {
+				0: time.Layout,
+				1: time.ANSIC,
+				2: time.UnixDate,
+				3: time.RubyDate,
+				4: time.RFC822,
+				5: time.RFC822Z,
+				6: time.RFC850,
+				7: time.RFC1123,
+				8: time.RFC1123Z,
+				9: time.RFC3339,
+				10: time.RFC3339Nano,
+			}
+			timeFormatIndex, err := c.F.GetInt()
+			if err != nil {
+				return err
+			}
+			timeString, err := c.F.GetString()
+			if err != nil {
+				return err
+			}
+			t, err := time.Parse(timeFormats[timeFormatIndex%len(timeFormats)], timeString)
+			if err != nil {
+				return err
+			}*/
+			timeInt, err := c.F.GetUint64()
+			if err != nil {
+				return err
+			}
+
+			j.Time = time.Unix(int64(timeInt%(1000*365*24*60*60)), 0)
+			return nil
+		},
 		func(j *metav1.TypeMeta, c fuzz.Continue) error {
 			// We have to customize the randomization of TypeMetas because their
 			// APIVersion and Kind must remain blank in memory.
@@ -48,6 +82,12 @@ func V1FuzzerFuncs() []interface{} {
 				return err
 			}
 			j.UID = types.UID(randString)
+
+			randString2, err := c.F.GetStringFrom(chars, 20)
+			if err != nil {
+				return err
+			}
+			j.Name = randString2
 
 			// Fuzzing sec and nsec in a smaller range (uint32 instead of int64),
 			// so that the result Unix time is a valid date and can be parsed into RFC3339 format.
