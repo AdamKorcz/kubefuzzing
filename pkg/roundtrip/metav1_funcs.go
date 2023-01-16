@@ -28,31 +28,6 @@ import (
 func V1FuzzerFuncs() []interface{} {
 	return []interface{}{
 		func(j *metav1.Time, c fuzz.Continue) error {
-			/*timeFormats := map[int]string {
-				0: time.Layout,
-				1: time.ANSIC,
-				2: time.UnixDate,
-				3: time.RubyDate,
-				4: time.RFC822,
-				5: time.RFC822Z,
-				6: time.RFC850,
-				7: time.RFC1123,
-				8: time.RFC1123Z,
-				9: time.RFC3339,
-				10: time.RFC3339Nano,
-			}
-			timeFormatIndex, err := c.F.GetInt()
-			if err != nil {
-				return err
-			}
-			timeString, err := c.F.GetString()
-			if err != nil {
-				return err
-			}
-			t, err := time.Parse(timeFormats[timeFormatIndex%len(timeFormats)], timeString)
-			if err != nil {
-				return err
-			}*/
 			timeInt, err := c.F.GetUint64()
 			if err != nil {
 				return err
