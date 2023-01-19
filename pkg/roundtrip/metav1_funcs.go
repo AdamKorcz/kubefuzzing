@@ -16,6 +16,7 @@
 package roundtrip
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -89,13 +90,25 @@ func V1FuzzerFuncs() []interface{} {
 			// Fuzzing sec and nsec in a smaller range (uint32 instead of int64),
 			// so that the result Unix time is a valid date and can be parsed into RFC3339 format.
 			var sec, nsec uint32
-			c.GenerateStruct(&sec)
-			c.GenerateStruct(&nsec)
+			err = c.GenerateStruct(&sec)
+			if err != nil {
+				return err
+			}
+			err = c.GenerateStruct(&nsec)
+			if err != nil {
+				return err
+			}
 			j.CreationTimestamp = metav1.Unix(int64(sec), int64(nsec)).Rfc3339Copy()
 
 			if j.DeletionTimestamp != nil {
-				c.GenerateStruct(&sec)
-				c.GenerateStruct(&nsec)
+				err = c.GenerateStruct(&sec)
+				if err != nil {
+					return err
+				}
+				err = c.GenerateStruct(&nsec)
+				if err != nil {
+					return err
+				}
 				t := metav1.Unix(int64(sec), int64(nsec)).Rfc3339Copy()
 				j.DeletionTimestamp = &t
 			}
@@ -115,6 +128,20 @@ func V1FuzzerFuncs() []interface{} {
 			}
 			if len(j.Finalizers) == 0 {
 				j.Finalizers = nil
+			}
+
+			// This should already have been handled, but to be sure:
+			if j.Labels != nil && len(j.Labels) == 0 {
+				return fmt.Errorf("Wrong setting")
+			}
+			if j.Annotations != nil && len(j.Annotations) == 0 {
+				return fmt.Errorf("Wrong setting")
+			}
+			if j.OwnerReferences != nil && len(j.OwnerReferences) == 0 {
+				return fmt.Errorf("Wrong setting")
+			}
+			if j.Finalizers != nil && len(j.Finalizers) == 0 {
+				return fmt.Errorf("Wrong setting")
 			}
 			return nil
 		},

@@ -53,7 +53,7 @@ var (
 	
 )
 
-func ExternalTypesViaJSON(data []byte, typeToTest int) {
+func ExternalTypesViaJSON(data []byte, typeToTest int) error {
 	codecFactory := serializer.NewCodecFactory(Scheme)
 	fuzzCodecFactory = codecFactory
 
@@ -61,16 +61,20 @@ func ExternalTypesViaJSON(data []byte, typeToTest int) {
 	i := 0
 	for gvk := range kinds {
 		if gvk.Version == runtime.APIVersionInternal || globalNonRoundTrippableTypes.Has(gvk.Kind) {
-			return
+			return fmt.Errorf("Invalid type")
 		}
 		if i == typeToTest%len(kinds) {
-			roundTripOfExternalType(data, gvk)
+			err := roundTripOfExternalType(data, gvk)
+			if err != nil {
+				return err
+			}
 		}
 		i++
 	}
+	return nil
 }
 
-func roundTripOfExternalType(data []byte, externalGVK schema.GroupVersionKind) {
+func roundTripOfExternalType(data []byte, externalGVK schema.GroupVersionKind) error {
 	object, err := Scheme.New(externalGVK)
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't make a %v? %v", externalGVK, err))
@@ -82,7 +86,7 @@ func roundTripOfExternalType(data []byte, externalGVK schema.GroupVersionKind) {
 
 	object, err = fuzzInternalObject(data, object)
 	if err != nil {
-		return
+		return err
 	}
 
 	typeAcc.SetKind(externalGVK.Kind)
@@ -92,6 +96,7 @@ func roundTripOfExternalType(data []byte, externalGVK schema.GroupVersionKind) {
 
 	// TODO remove this hack after we're past the intermediate steps
 	roundTrip(protobuf.NewSerializer(Scheme, Scheme), object)
+	return nil
 }
 
 func fuzzInternalObject(data []byte, object runtime.Object) (runtime.Object, error) {
@@ -99,7 +104,10 @@ func fuzzInternalObject(data []byte, object runtime.Object) (runtime.Object, err
 	for i := range customFuncs {
 		ff.AddFuncs(customFuncs[i])
 	}
-	ff.GenerateWithCustom(object)
+	err := ff.GenerateWithCustom(object)
+	if err != nil {
+		return object, err
+	}
 
 	j, err := apimeta.TypeAccessor(object)
 	if err != nil {
