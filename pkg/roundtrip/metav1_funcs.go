@@ -64,6 +64,28 @@ func V1FuzzerFuncs() []interface{} {
 			}
 			j.Name = randString2
 
+			// Namespace
+			namespaceLength, err := c.F.GetInt()
+			if err != nil {
+				return err
+			}
+			namespace, err := c.F.GetStringFrom(chars, namespaceLength%63)
+			if err != nil {
+				return err
+			}
+			j.Namespace = namespace
+
+			// GenerateName
+			generateNameLength, err := c.F.GetInt()
+			if err != nil {
+				return err
+			}
+			generateName, err := c.F.GetStringFrom(chars, generateNameLength%63)
+			if err != nil {
+				return err
+			}
+			j.GenerateName = generateName
+
 			// Fuzzing sec and nsec in a smaller range (uint32 instead of int64),
 			// so that the result Unix time is a valid date and can be parsed into RFC3339 format.
 			var sec, nsec uint32
