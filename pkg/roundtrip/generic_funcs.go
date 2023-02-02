@@ -36,30 +36,35 @@ func SetCodecFactory(c runtimeserializer.CodecFactory) {
 func GenericFuzzerFuncs() []interface{} {
 	return []interface{}{
 		func(q *resource.Quantity, c fuzz.Continue) error {
+			var newInt int
 			newInt, err := c.F.GetInt()
 			if err != nil {
-				return err
+				newInt = 1
 			}
 			*q = *resource.NewQuantity(int64(newInt%1000), resource.DecimalExponent)
 			return nil
 		},
 		func(j *int, c fuzz.Continue) error {
+			var newInt int
 			newInt, err := c.F.GetInt()
 			if err != nil {
-				return err
+				newInt = 1
 			}
 			*j = newInt
 			return nil
 		},
 		func(j **int, c fuzz.Continue) error {
-			makeNonNil, err := c.F.GetBool()
+			var makeNonNil bool
+			var newInt int
+			var err error
+			makeNonNil, err = c.F.GetBool()
 			if err != nil {
-				return err
+				makeNonNil = false
 			}
 			if makeNonNil {
-				newInt, err := c.F.GetInt()
+				newInt, err = c.F.GetInt()
 				if err != nil {
-					return err
+					newInt = 1
 				}
 				i := newInt
 				*j = &i
@@ -83,10 +88,11 @@ func GenericFuzzerFuncs() []interface{} {
 					ContentType: runtime.ContentTypeJSON,
 				}
 			} else {
+				var typeIndex int
 				types := []runtime.Object{&metav1.Status{}, &metav1.APIGroup{}}
 				typeIndex, err := c.F.GetInt()
 				if err != nil {
-					return err
+					typeIndex = 0
 				}
 				t := types[typeIndex%len(types)]
 				c.F.GenerateWithCustom(t)
@@ -97,9 +103,10 @@ func GenericFuzzerFuncs() []interface{} {
 		func(r *runtime.RawExtension, c fuzz.Continue) error {
 			// Pick an arbitrary type and fuzz it
 			types := []runtime.Object{&metav1.Status{}, &metav1.APIGroup{}}
+			var typeIndex int
 			typeIndex, err := c.F.GetInt()
 			if err != nil {
-				return err
+				typeIndex = 0
 			}
 			obj := types[typeIndex%len(types)]
 			c.F.GenerateWithCustom(obj)

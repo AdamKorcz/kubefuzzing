@@ -37,21 +37,23 @@ var (
 func FuzzerFuncs() []interface{} {
 	return []interface{}{
 		func(u *apis.URL, c fuzz.Continue) error {
-			schemeString, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+			var schemeString, hostString, user, p, rawPath, rawQuery string
+			var err error
+			schemeString, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 			if err != nil {
-				return err
+				schemeString = "fuzz"
 			}
-			hostString, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+			hostString, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 			if err != nil {
-				return err
+				hostString = "fuzz"
 			}
-			user, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+			user, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 			if err != nil {
-				return err
+				user = "fuzz"
 			}
-			p, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+			p, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 			if err != nil {
-				return err
+				p = "fuzz"
 			}
 			u.Scheme = schemeString
 			u.Host = hostString
@@ -59,13 +61,13 @@ func FuzzerFuncs() []interface{} {
 				user, // username
 				p,    // password
 			)
-			rawPath, err := c.F.GetString()
+			rawPath, err = c.F.GetString()
 			if err != nil {
-				return err
+				rawPath = "fuzz"
 			}
-			rawQuery, err := c.F.GetString()
+			rawQuery, err = c.F.GetString()
 			if err != nil {
-				return err
+				rawPath = "fuzz"
 			}
 			u.RawPath = url.PathEscape(rawPath)
 			u.RawQuery = url.QueryEscape(rawQuery)
@@ -94,25 +96,28 @@ func FuzzConditions(accessor apis.ConditionsAccessor, c fuzz.Continue) error {
 	conds := accessor.GetConditions()
 	for i, cond := range conds {
 		// Leave condition.Type untouched
-		str1, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+		var str1, str2, str3, str4 string
+		var err error
+		var timeInt uint64
+		str1, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 		if err != nil {
-			return err
+			str1 = "fuzz"
 		}
-		str2, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 20)
+		str2, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 20)
 		if err != nil {
-			return err
+			str2 = "fuzz"
 		}
-		str3, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+		str3, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 		if err != nil {
-			return err
+			str3 = "fuzz"
 		}
-		str4, err := c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
+		str4, err = c.F.GetStringFrom("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 50)
 		if err != nil {
-			return err
+			str4 = "fuzz"
 		}
-		timeInt, err := c.F.GetUint64()
+		timeInt, err = c.F.GetUint64()
 		if err != nil {
-			return err
+			timeInt = uint64(123)
 		}
 		cond.Status = corev1.ConditionStatus(str1)
 		cond.Severity = apis.ConditionSeverity(str2)

@@ -83,7 +83,7 @@ func V1FuzzerFuncs() []interface{} {
 				generateName, err := c.F.GetStringFrom(chars, generateNameLength%63)
 				if err == nil {
 					j.GenerateName = generateName
-				}			
+				}
 			}
 
 			// Fuzzing sec and nsec in a smaller range (uint32 instead of int64),
@@ -98,7 +98,7 @@ func V1FuzzerFuncs() []interface{} {
 				}
 			}
 
-			if j.DeletionTimestamp != nil {				
+			if j.DeletionTimestamp != nil {
 				t := metav1.Unix(int64(123), int64(123)).Rfc3339Copy()
 				j.DeletionTimestamp = &t
 
@@ -132,34 +132,40 @@ func V1FuzzerFuncs() []interface{} {
 		},
 		func(j *metav1.ResourceVersionMatch, c fuzz.Continue) error {
 			matches := []metav1.ResourceVersionMatch{"", metav1.ResourceVersionMatchExact, metav1.ResourceVersionMatchNotOlderThan}
+			var ind int
 			ind, err := c.F.GetInt()
 			if err != nil {
-				return err
+				ind = 0
 			}
 			*j = matches[ind%len(matches)]
 			return nil
 		},
 		func(j *metav1.ListMeta, c fuzz.Continue) error {
+			var ind uint64
+			var randString string
 			ind, err := c.F.GetUint64()
 			if err != nil {
-				return err
+				ind = 0
 			}
 			j.ResourceVersion = strconv.FormatUint(ind, 10)
-			randString, err := c.F.GetString()
+			randString, err = c.F.GetString()
 			if err != nil {
-				return err
+				randString = "fuzz"
 			}
 			j.SelfLink = randString
 			return nil
 		},
 		func(j *metav1.LabelSelector, c fuzz.Continue) error {
 			c.GenerateStruct(j)
+			var length, ind int
+			var randLabel, labelKey, l string
+			var err error
 			// we can't have an entirely empty selector, so force
 			// use of MatchExpression if necessary
 			if len(j.MatchLabels) == 0 && len(j.MatchExpressions) == 0 {
-				length, err := c.F.GetInt()
+				length, err = c.F.GetInt()
 				if err != nil {
-					return err
+					length = 1
 				}
 				j.MatchExpressions = make([]metav1.LabelSelectorRequirement, length%3)
 			}
@@ -167,13 +173,13 @@ func V1FuzzerFuncs() []interface{} {
 			if j.MatchLabels != nil {
 				fuzzedMatchLabels := make(map[string]string, len(j.MatchLabels))
 				for i := 0; i < len(j.MatchLabels); i++ {
-					randLabel, err := randomLabelPart(c, true)
+					randLabel, err = randomLabelPart(c, true)
 					if err != nil {
-						return err
+						randLabel = "fuzz"
 					}
-					labelKey, err := randomLabelKey(c)
+					labelKey, err = randomLabelKey(c)
 					if err != nil {
-						return err
+						labelKey = "fuzz"
 					}
 					fuzzedMatchLabels[labelKey] = randLabel
 				}
@@ -197,27 +203,27 @@ func V1FuzzerFuncs() []interface{} {
 					c.GenerateStruct(&req)
 					labelKey, err := randomLabelKey(c)
 					if err != nil {
-						return err
+						labelKey = "fuzz"
 					}
 					req.Key = labelKey
-					ind, err := c.F.GetInt()
+					ind, err = c.F.GetInt()
 					if err != nil {
-						return err
+						ind = 0
 					}
 					req.Operator = validOperators[ind%len(validOperators)]
 					if req.Operator == metav1.LabelSelectorOpIn || req.Operator == metav1.LabelSelectorOpNotIn {
 						if len(req.Values) == 0 {
-							length, err := c.F.GetInt()
+							length, err = c.F.GetInt()
 							if err != nil {
-								return err
+								length = 1
 							}
 							// we must have some values here, so randomly choose a short length
 							req.Values = make([]string, length%3)
 						}
 						for i := range req.Values {
-							l, err := randomLabelPart(c, true)
+							l, err = randomLabelPart(c, true)
 							if err != nil {
-								return err
+								l = "fuzz"
 							}
 							req.Values[i] = l
 						}

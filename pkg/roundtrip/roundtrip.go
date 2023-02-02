@@ -17,24 +17,23 @@ package roundtrip
 
 import (
 	"bytes"
-	"reflect"
+	"encoding/hex"
 	"fmt"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/runtime/serializer/json"
-	"k8s.io/apimachinery/pkg/runtime/serializer/protobuf"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	gfh "github.com/AdaLogics/go-fuzz-headers"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/protobuf/proto"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/apimachinery/pkg/util/sets"
-	"encoding/hex"
-	"strings"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/apimachinery/pkg/runtime/serializer/protobuf"
 	"k8s.io/apimachinery/pkg/util/diff"
-	gfh "github.com/AdaLogics/go-fuzz-headers"
+	"k8s.io/apimachinery/pkg/util/sets"
+	"reflect"
+	"strings"
 )
-
 
 var (
 	globalNonRoundTrippableTypes = sets.NewString(
@@ -50,7 +49,6 @@ var (
 		// Delete options is only read in metav1
 		"DeleteOptions",
 	)
-	
 )
 
 func ExternalTypesViaJSON(data []byte, typeToTest int) error {
@@ -79,6 +77,7 @@ func roundTripOfExternalType(data []byte, externalGVK schema.GroupVersionKind) e
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't make a %v? %v", externalGVK, err))
 	}
+
 	typeAcc, err := apimeta.TypeAccessor(object)
 	if err != nil {
 		panic(fmt.Sprintf("%q is not a TypeMeta and cannot be tested - add it to nonRoundTrippableInternalTypes: %v", externalGVK, err))
