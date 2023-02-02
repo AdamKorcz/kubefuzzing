@@ -16,7 +16,7 @@
 package roundtrip
 
 import (
-	"fmt"
+	//"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -47,70 +47,69 @@ func V1FuzzerFuncs() []interface{} {
 		func(j *metav1.ObjectMeta, c fuzz.Continue) error {
 			c.GenerateStruct(j)
 
+			j.ResourceVersion = "123456789"
 			ri, err := c.F.GetInt()
-			if err != nil {
-				return err
+			if err == nil {
+				j.ResourceVersion = strconv.FormatUint(uint64(ri), 10)
 			}
-			j.ResourceVersion = strconv.FormatUint(uint64(ri), 10)
+
+			j.UID = types.UID("fuzz")
 			chars := "abcdefghijklmnopqrstuvwxyz-1234567890"
 			randString, err := c.F.GetStringFrom(chars, 63)
-			if err != nil {
-				return err
+			if err == nil {
+				j.UID = types.UID(randString)
 			}
-			j.UID = types.UID(randString)
 
+			j.Name = ""
 			randString2, err := c.F.GetStringFrom(chars, 20)
-			if err != nil {
-				return err
+			if err == nil {
+				j.Name = randString2
 			}
-			j.Name = randString2
 
 			// Namespace
+			j.Namespace = "default"
 			namespaceLength, err := c.F.GetInt()
-			if err != nil {
-				return err
+			if err == nil {
+				namespace, err := c.F.GetStringFrom(chars, namespaceLength%63)
+				if err == nil {
+					j.Namespace = namespace
+				}
 			}
-			namespace, err := c.F.GetStringFrom(chars, namespaceLength%63)
-			if err != nil {
-				return err
-			}
-			j.Namespace = namespace
 
 			// GenerateName
+			j.GenerateName = ""
 			generateNameLength, err := c.F.GetInt()
-			if err != nil {
-				return err
+			if err == nil {
+				generateName, err := c.F.GetStringFrom(chars, generateNameLength%63)
+				if err == nil {
+					j.GenerateName = generateName
+				}			
 			}
-			generateName, err := c.F.GetStringFrom(chars, generateNameLength%63)
-			if err != nil {
-				return err
-			}
-			j.GenerateName = generateName
 
 			// Fuzzing sec and nsec in a smaller range (uint32 instead of int64),
 			// so that the result Unix time is a valid date and can be parsed into RFC3339 format.
+			j.CreationTimestamp = metav1.Unix(int64(123), int64(123)).Rfc3339Copy()
 			var sec, nsec uint32
 			err = c.GenerateStruct(&sec)
-			if err != nil {
-				return err
-			}
-			err = c.GenerateStruct(&nsec)
-			if err != nil {
-				return err
-			}
-			j.CreationTimestamp = metav1.Unix(int64(sec), int64(nsec)).Rfc3339Copy()
-
-			if j.DeletionTimestamp != nil {
-				err = c.GenerateStruct(&sec)
-				if err != nil {
-					return err
-				}
+			if err == nil {
 				err = c.GenerateStruct(&nsec)
-				if err != nil {
-					return err
+				if err == nil {
+					j.CreationTimestamp = metav1.Unix(int64(sec), int64(nsec)).Rfc3339Copy()
 				}
-				t := metav1.Unix(int64(sec), int64(nsec)).Rfc3339Copy()
+			}
+
+			if j.DeletionTimestamp != nil {				
+				t := metav1.Unix(int64(123), int64(123)).Rfc3339Copy()
 				j.DeletionTimestamp = &t
+
+				err = c.GenerateStruct(&sec)
+				if err == nil {
+					err = c.GenerateStruct(&nsec)
+					if err == nil {
+						t := metav1.Unix(int64(sec), int64(nsec)).Rfc3339Copy()
+						j.DeletionTimestamp = &t
+					}
+				}
 			}
 
 			if len(j.Labels) == 0 {
@@ -128,20 +127,6 @@ func V1FuzzerFuncs() []interface{} {
 			}
 			if len(j.Finalizers) == 0 {
 				j.Finalizers = nil
-			}
-
-			// This should already have been handled, but to be sure:
-			if j.Labels != nil && len(j.Labels) == 0 {
-				return fmt.Errorf("Wrong setting")
-			}
-			if j.Annotations != nil && len(j.Annotations) == 0 {
-				return fmt.Errorf("Wrong setting")
-			}
-			if j.OwnerReferences != nil && len(j.OwnerReferences) == 0 {
-				return fmt.Errorf("Wrong setting")
-			}
-			if j.Finalizers != nil && len(j.Finalizers) == 0 {
-				return fmt.Errorf("Wrong setting")
 			}
 			return nil
 		},

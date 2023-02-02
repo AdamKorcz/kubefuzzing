@@ -104,10 +104,7 @@ func fuzzInternalObject(data []byte, object runtime.Object) (runtime.Object, err
 	for i := range customFuncs {
 		ff.AddFuncs(customFuncs[i])
 	}
-	err := ff.GenerateWithCustom(object)
-	if err != nil {
-		return object, err
-	}
+	ff.GenerateWithCustom(object)
 
 	j, err := apimeta.TypeAccessor(object)
 	if err != nil {
