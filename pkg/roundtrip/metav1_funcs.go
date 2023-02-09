@@ -116,11 +116,17 @@ func V1FuzzerFuncs() []interface{} {
 				j.Labels = nil
 			} else {
 				delete(j.Labels, "")
+				if len(j.Labels) == 0 {
+					j.Labels = nil
+				}
 			}
 			if len(j.Annotations) == 0 {
 				j.Annotations = nil
 			} else {
 				delete(j.Annotations, "")
+				if len(j.Annotations) == 0 {
+					j.Annotations = nil
+				}
 			}
 			if len(j.OwnerReferences) == 0 {
 				j.OwnerReferences = nil
