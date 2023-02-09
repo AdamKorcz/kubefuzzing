@@ -169,7 +169,7 @@ func roundTrip(codec runtime.Codec, object runtime.Object) {
 	// ensure that the object produced from decoding the encoded data is equal
 	// to the original object
 	if !apiequality.Semantic.DeepEqual(original, obj2) {
-		panic(fmt.Sprintf("%v: diff: %v\nCodec: %#v\nSource:\n\n%#v\n\nEncoded:\n\n%s\n\nFinal:\n\n%#v\n", name, cmp.Diff(original, obj2, CmpOpts), codec, printer.Sprintf("%#v", original), dataAsString(data), printer.Sprintf("%#v", obj2)))
+		panic(fmt.Sprintf("%v: diff: %v\nCodec: %#v\nSource:\n\n%#v\n\nEncoded:\n\n%s\n\nFinal:\n\n%#v\n", name, cmp.Diff(original, obj2, CmpOpts...), codec, printer.Sprintf("%#v", original), dataAsString(data), printer.Sprintf("%#v", obj2)))
 	}
 
 	// decode the encoded data into a new object (instead of letting the codec
