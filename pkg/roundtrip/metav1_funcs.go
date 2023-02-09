@@ -16,7 +16,7 @@
 package roundtrip
 
 import (
-	"fmt"
+	//"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -42,10 +42,11 @@ func V1FuzzerFuncs() []interface{} {
 			// APIVersion and Kind must remain blank in memory.
 			j.APIVersion = ""
 			j.Kind = ""
+			//fmt.Println("Returning nil from TypeMeta")
 			return nil
 		},
 		func(j *metav1.ObjectMeta, c fuzz.Continue) error {
-			fmt.Println("Creating ObjectMeta...")
+			//fmt.Println("Creating ObjectMeta...")
 			c.GenerateStruct(j)
 
 			j.ResourceVersion = "123456789"
@@ -115,23 +116,23 @@ func V1FuzzerFuncs() []interface{} {
 
 			fuzzMap := make(map[string]string)
 			fuzzMap["fuzz"] = "fuzz"
-			fmt.Println("Setting fuzzMap...")
+			//fmt.Println("Setting fuzzMap...")
 
 			if len(j.Labels) == 0 {
-				j.Labels = fuzzMap
+				j.Labels = nil
 			} else {
 				delete(j.Labels, "")
-				if len(j.Labels) == 0 {
+				/*if len(j.Labels) == 0 {
 					j.Labels = fuzzMap
-				}
+				}*/
 			}
 			if len(j.Annotations) == 0 {
-				j.Annotations = fuzzMap
+				j.Annotations = nil
 			} else {
 				delete(j.Annotations, "")
-				if len(j.Annotations) == 0 {
+				/*if len(j.Annotations) == 0 {
 					j.Annotations = fuzzMap
-				}
+				}*/
 			}
 			if len(j.OwnerReferences) == 0 {
 				j.OwnerReferences = nil

@@ -102,6 +102,7 @@ func roundTripOfExternalType(data []byte, externalGVK schema.GroupVersionKind) e
 func fuzzInternalObject(data []byte, object runtime.Object) (runtime.Object, error) {
 	ff := gfh.NewConsumer(data)
 	for i := range customFuncs {
+		//fmt.Println("Adding ", customFuncs[i])
 		ff.AddFuncs(customFuncs[i])
 	}
 	ff.GenerateWithCustom(object)
