@@ -113,11 +113,11 @@ func V1FuzzerFuncs() []interface{} {
 			}
 
 			if len(j.Labels) == 0 {
-				j.Labels = nil
+				j.Labels = map[string]string{"fuzz":"fuzz"}
 			} else {
 				delete(j.Labels, "")
 				if len(j.Labels) == 0 {
-					j.Labels = nil
+					j.Labels = j.Labels = map[string]string{"fuzz":"fuzz"}
 				}
 			}
 			if len(j.Annotations) == 0 {
