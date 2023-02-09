@@ -112,20 +112,23 @@ func V1FuzzerFuncs() []interface{} {
 				}
 			}
 
+			fuzzMap := make(map[string]string)
+			fuzzMap["fuzz"] = "fuzz"
+
 			if len(j.Labels) == 0 {
-				j.Labels = map[string]string{"fuzz":"fuzz"}
+				j.Labels = fuzzMap
 			} else {
 				delete(j.Labels, "")
 				if len(j.Labels) == 0 {
-					j.Labels = j.Labels = map[string]string{"fuzz":"fuzz"}
+					j.Labels = j.Labels = fuzzMap
 				}
 			}
 			if len(j.Annotations) == 0 {
-				j.Annotations = nil
+				j.Annotations = fuzzMap
 			} else {
 				delete(j.Annotations, "")
 				if len(j.Annotations) == 0 {
-					j.Annotations = nil
+					j.Annotations = fuzzMap
 				}
 			}
 			if len(j.OwnerReferences) == 0 {
