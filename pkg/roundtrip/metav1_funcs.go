@@ -16,7 +16,7 @@
 package roundtrip
 
 import (
-	//"fmt"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -45,6 +45,7 @@ func V1FuzzerFuncs() []interface{} {
 			return nil
 		},
 		func(j *metav1.ObjectMeta, c fuzz.Continue) error {
+			fmt.Println("Creating ObjectMeta...")
 			c.GenerateStruct(j)
 
 			j.ResourceVersion = "123456789"
@@ -114,6 +115,7 @@ func V1FuzzerFuncs() []interface{} {
 
 			fuzzMap := make(map[string]string)
 			fuzzMap["fuzz"] = "fuzz"
+			fmt.Println("Setting fuzzMap...")
 
 			if len(j.Labels) == 0 {
 				j.Labels = fuzzMap
