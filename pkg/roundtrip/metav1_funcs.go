@@ -120,7 +120,7 @@ func V1FuzzerFuncs() []interface{} {
 			} else {
 				delete(j.Labels, "")
 				if len(j.Labels) == 0 {
-					j.Labels = j.Labels = fuzzMap
+					j.Labels = fuzzMap
 				}
 			}
 			if len(j.Annotations) == 0 {
